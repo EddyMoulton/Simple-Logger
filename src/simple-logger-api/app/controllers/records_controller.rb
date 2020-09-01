@@ -1,19 +1,29 @@
 class RecordsController < ApplicationController
-  before_action :set_record, only: [:show, :update, :destroy]
+  before_action :set_record, only: %i[show update destroy]
 
   def index
-    if (params.has_key?(:creator_id) && params.has_key?(:category_id))
-      @records = Record.find_by(creator_id: params[:creator_id], category_id: params[:category_id])
-    elsif (params.has_key?(:category_id))
-      @records = Record.find_by(category_id: params[:category_id])
+    current_uri = request.env['PATH_INFO']
+
+    if current_uri.include?('creators') && current_uri.include?('categories')
+      if params.has_key?(:creator_id) && params.has_key?(:category_id)
+        @records = Record.where(creator_id: params[:creator_id], category_id: params[:category_id])
+      end
+    elsif current_uri.include?('categories')
+      @records = Record.where(category_id: params[:category_id]) if params.has_key?(:category_id)
+    elsif current_uri.include?('creators')
+      @records = Record.where(creator_id: params[:creator_id]) if params.has_key?(:creator_id)
     else
       @records = Record.all
     end
 
-    if (@records.any?)
-      json_response(@records)
+    if @records.nil? || @records.empty?
+      if defined?(e)
+        json_response({ message: e.message }, :not_found)
+      else
+        json_response({}, :not_found)
+      end
     else
-      json_response({ message: e.message }, :not_found)
+      json_response(@records)
     end
   end
 
