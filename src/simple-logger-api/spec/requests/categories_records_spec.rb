@@ -8,24 +8,34 @@ RSpec.describe 'Records API' do
   let(:id) { records.first.id }
 
   describe 'GET /categories/:category_id/records' do
-    before { get "/categories/#{category_id}/records" }
-
-    context 'when category exists' do
-      it 'returns status code 200' do
-        expect(response).to have_http_status(200)
-      end
-
-      it 'returns all records' do
-        expect(json.size).to eq(20)
-      end
+    subject do
+      get "/categories/#{category_id}/records"
     end
 
-    context 'when category does not exist' do
-      let(:category_id) { 0 }
+    context 'is authenticated' do
+      context 'has correct scope' do
+        before do
+          allow(JsonWebToken).to receive(:verify).and_return({ 'scope' => 'reader' })
+        end
 
-      it 'returns status code 404' do
-        expect(response).to have_http_status(404)
+        context 'when creator exists' do
+          it 'returns status code 200 and returns all records' do
+            expect(subject).to eq(200)
+          end
+        end
+
+        context 'when creator does not exist' do
+          let(:category_id) { 0 }
+
+          it 'returns status code 404' do
+            expect(subject).to eq(404)
+          end
+        end
       end
+
+      include_examples 'has incorrect authentication'
     end
+
+    include_examples 'has no authentication'
   end
 end

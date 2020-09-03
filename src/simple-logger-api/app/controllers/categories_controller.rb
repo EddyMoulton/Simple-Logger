@@ -1,5 +1,17 @@
 class CategoriesController < ApplicationController
-  before_action :set_category, only: [:show, :update, :destroy]
+  include Secured
+
+  def initialize
+    allowed_scopes = {
+      'GET' => ['reader'],
+      'PUT' => ['updater'],
+      'DELETE' => ['deleter']
+    }
+
+    set_allowed_scopes allowed_scopes
+  end
+
+  before_action :set_category, only: %i[show update destroy]
 
   def index
     @categories = Category.all

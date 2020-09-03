@@ -4,31 +4,51 @@ RSpec.describe 'Records API' do
   let!(:creator) { create(:creator) }
   let!(:category) { create(:category) }
   let!(:records) { create_list(:record, 20, creator_id: creator.id, category_id: category.id) }
-  let(:creator_id) { creator.id }
-  let(:category_id) { category.id }
   let(:id) { records.first.id }
 
   describe 'GET /records' do
-    before { get '/records' }
-
-    it 'returns status code 200' do
-      expect(response).to have_http_status(200)
+    subject do
+      get '/records'
     end
 
-    it 'returns all records' do
-      expect(json.size).to eq(20)
+    context 'is authenticated' do
+      context 'has correct scope' do
+        before do
+          allow(JsonWebToken).to receive(:verify).and_return({ 'scope' => 'reader' })
+        end
+
+        it 'returns status code 200 and all records' do
+          expect(subject).to eq(200)
+          expect(json.size).to eq(20)
+        end
+      end
+
+      include_examples 'has incorrect authentication'
     end
+
+    include_examples 'has no authentication'
   end
 
   describe 'GET /records/:id' do
-    before { get "/records/#{id}" }
-
-    it 'returns status code 200' do
-      expect(response).to have_http_status(200)
+    subject do
+      get "/records/#{id}"
     end
 
-    it 'returns the record' do
-      expect(json['id']).to eq(id)
+    context 'is authenticated' do
+      context 'has correct scope' do
+        before do
+          allow(JsonWebToken).to receive(:verify).and_return({ 'scope' => 'reader' })
+        end
+
+        it 'returns status code 200 and all records' do
+          expect(subject).to eq(200)
+          expect(json['id']).to eq(id)
+        end
+      end
+
+      include_examples 'has incorrect authentication'
     end
+
+    include_examples 'has no authentication'
   end
 end

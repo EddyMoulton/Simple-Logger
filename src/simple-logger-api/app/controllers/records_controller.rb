@@ -1,4 +1,17 @@
 class RecordsController < ApplicationController
+  include Secured
+
+  def initialize
+    allowed_scopes = {
+      'GET' => ['reader'],
+      'PUT' => ['updater'],
+      'POST' => ['logger'],
+      'DELETE' => ['deleter']
+    }
+
+    set_allowed_scopes allowed_scopes
+  end
+
   before_action :set_record, only: %i[show update destroy]
 
   def index
