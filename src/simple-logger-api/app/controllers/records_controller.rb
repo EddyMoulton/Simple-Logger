@@ -44,9 +44,16 @@ class RecordsController < ApplicationController
     json_response(@record)
   end
 
-  def update
-    @record.update(record_params)
-    head :no_content
+  def create
+    if params['creator'] && params['category'] && params['key']
+      creator = Creator.find_or_create_by(name: params['creator'])
+      category = Category.find_or_create_by(name: params['category'])
+
+      Record.create(creator_id: creator.id, category_id: category.id, key: params['key'], value: params['value'])
+      head :no_content
+    else
+      head :unprocessable_entity
+    end
   end
 
   def destroy
