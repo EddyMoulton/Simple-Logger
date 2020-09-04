@@ -27,8 +27,8 @@ RSpec.describe 'Records API' do
         context 'when creator does not exist' do
           let(:category_id) { 0 }
 
-          it 'returns status code 404' do
-            expect(subject).to eq(404)
+          it 'returns status code 204' do
+            expect(subject).to eq(204)
           end
         end
       end

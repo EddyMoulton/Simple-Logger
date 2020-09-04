@@ -31,9 +31,9 @@ class RecordsController < ApplicationController
 
     if @records.nil? || @records.empty?
       if defined?(e)
-        json_response({ message: e.message }, :not_found)
+        json_response({ message: e.message }, :internal_server_error)
       else
-        json_response({}, :not_found)
+        json_response({}, :no_content)
       end
     else
       json_response(@records)
@@ -45,11 +45,17 @@ class RecordsController < ApplicationController
   end
 
   def create
-    if params['creator'] && params['category'] && params['key']
+    if params['creator'] && params['category'] && params['key'] && params['value']
       creator = Creator.find_or_create_by(name: params['creator'])
       category = Category.find_or_create_by(name: params['category'])
 
-      Record.create(creator_id: creator.id, category_id: category.id, key: params['key'], value: params['value'])
+      timestamp = if params['timestamp'].nil?
+                    Time.now.utc
+                  else
+                    DateTime.parse(params['timestamp'])
+                   end
+
+      Record.create(creator_id: creator.id, category_id: category.id, key: params['key'], value: params['value'], timestamp: timestamp)
       head :no_content
     else
       head :unprocessable_entity
