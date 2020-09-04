@@ -55,7 +55,7 @@ RSpec.describe 'Records API', type: :request do
   describe 'POST /records with correct payload' do
     subject do
       headers = { 'CONTENT_TYPE' => 'application/json' }
-      post '/records', params: '{ "creator": "creator", "category": "category", "key": "key", "value": "value" }', headers: headers
+      post '/records', params: '{ "creator": "creator", "logs": [ {"category": "category", "key": "key", "value": "value" } ] }', headers: headers
     end
 
     context 'is authenticated' do
@@ -126,7 +126,30 @@ RSpec.describe 'Records API', type: :request do
   describe 'POST /records with partial payload' do
     subject do
       headers = { 'CONTENT_TYPE' => 'application/json' }
-      post '/records', params: '{ "creator": "creator", "key": "key", "value": "value" }', headers: headers
+      post '/records', params: '{ "creator": "creator", "logs": [ {"key": "key", "value": "value" } ] }', headers: headers
+    end
+
+    context 'is authenticated' do
+      context 'has correct scope' do
+        before do
+          allow(JsonWebToken).to receive(:verify).and_return({ 'scope' => 'logger' })
+        end
+
+        it 'returns status code 422' do
+          expect(subject).to eq(422)
+        end
+      end
+
+      include_examples 'has incorrect authentication'
+    end
+
+    include_examples 'has no authentication'
+  end
+
+  describe 'POST /records with single log payload' do
+    subject do
+      headers = { 'CONTENT_TYPE' => 'application/json' }
+      post '/records', params: '{ "creator": "creator", "category": "category", "key": "key", "value": "value" }', headers: headers
     end
 
     context 'is authenticated' do

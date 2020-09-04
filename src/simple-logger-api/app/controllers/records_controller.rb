@@ -45,17 +45,27 @@ class RecordsController < ApplicationController
   end
 
   def create
-    if params['creator'] && params['category'] && params['key'] && params['value']
-      creator = Creator.find_or_create_by(name: params['creator'])
-      category = Category.find_or_create_by(name: params['category'])
+    if params['creator'] && params['logs'] && params['logs'].is_a?(Array)
+      ActiveRecord::Base.transaction do
+        params['logs'].each do |log|
+          if log['category'] && log['key'] && log['value']
+            creator = Creator.find_or_create_by(name: params['creator'])
+            category = Category.find_or_create_by(name: log['category'])
 
-      timestamp = if params['timestamp'].nil?
-                    Time.now.utc
-                  else
-                    DateTime.parse(params['timestamp'])
-                   end
+            timestamp = if log['timestamp'].nil?
+                          Time.now.utc
+                        else
+                          DateTime.parse(log['timestamp'])
+                        end
 
-      Record.create(creator_id: creator.id, category_id: category.id, key: params['key'], value: params['value'], timestamp: timestamp)
+            Record.create!(creator_id: creator.id, category_id: category.id, key: log['key'], value: log['value'], timestamp: timestamp)
+          else
+            ActiveRecord::Rollback
+            return head :unprocessable_entity
+          end
+        end
+      end
+
       head :no_content
     else
       head :unprocessable_entity
