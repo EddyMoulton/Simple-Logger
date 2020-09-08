@@ -1,7 +1,7 @@
 
 @baseUrl = http://localhost:3000
-@clientId = {{simpleLoggerTestClientId}}
-@clientSecret = {{simpleLoggerTestClientSecret}}
+@clientId = {{loggerRbTestClientId}}
+@clientSecret = {{loggerRbTestClientSecret}}
 
 ###
 
